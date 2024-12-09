@@ -169,6 +169,7 @@ cython_debug/
 
 # Data
 notebooks/data/*
+notebooks/models/*
 
 sandbox/*
 
