@@ -1,6 +1,7 @@
 import torch
 import torch.nn as nn
-from torch.utils.data import DataLoader
+import torch.nn.functional as F
+from torch_geometric.loader import DataLoader
 
 from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score, roc_auc_score
 
@@ -8,7 +9,7 @@ class Trainer:
     def __init__(self, model, dataset, split_index=0):
         self.model = model
         self.dataset = dataset
-        self.loader = DataLoader(dataset, batch_size=1) #shuffle=True)
+        self.loader = DataLoader(dataset, batch_size=1)
 
         self.optimizer = torch.optim.Adam(model.parameters(), lr=3e-5, weight_decay=1e-2)
         self.scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(
@@ -62,6 +63,8 @@ class Trainer:
         return predictions, embeddings
     
     def get_metrics(self):
+        output = dict()
+
         batch = next(iter(self.loader))
         with torch.no_grad():
             logits, _ = self.model(batch.x, batch.edge_index, return_emb=True)
@@ -72,16 +75,19 @@ class Trainer:
         y_pred = predictions[self.test_mask].cpu().numpy()
         probs = probs[self.test_mask].cpu().numpy()
 
-        acc = accuracy_score(y_test, y_pred)
-        precision = precision_score(y_test, y_pred, average="weighted")
-        recall = recall_score(y_test, y_pred, average="weighted")
-        f1 = f1_score(y_test, y_pred, average="weighted")
+        output["accuracy"] = accuracy_score(y_test, y_pred)
+        output["precision"] = precision_score(y_test, y_pred, average="weighted")
+        output["recall"] = recall_score(y_test, y_pred, average="weighted")
+        output["f1"] = f1_score(y_test, y_pred, average="weighted")
         if self.dataset.num_classes == 2:
-            roc_auc = roc_auc_score(y_test, probs[:, 1])
+            output["roc_auc"] = roc_auc_score(y_test, probs[:, 1])
         else:
-            roc_auc = roc_auc_score(y_test, probs, multi_class="ovo")
+            output["roc_auc"] = roc_auc_score(y_test, probs, multi_class="ovo")
+
+        for k, v in output.items():
+            output[k] = round(v, 4)
         
-        return acc, precision, recall, f1, roc_auc
+        return output
                 
     def save_weights(self, path=None):
         if path is None:
@@ -100,4 +106,6 @@ class Trainer:
         return sum(p.numel() for p in self.model.parameters())
     
     def _get_default_weights_path(self):
-        return f"models/weights/gcn_{self.dataset.name}.pth"
+        model_name = type(self.model).__name__
+        config_str = "-".join(map(str, self.model.conv_channels))
+        return f"models/weights/{model_name}_{self.dataset.name}_{config_str}.pth"

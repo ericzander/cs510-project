@@ -24,6 +24,8 @@ class GAT(torch.nn.Module):
         self.skip_connections = skip_connections
         self.long_residual = long_residual
 
+        self.conv_channels = conv_channels
+
         self.n_conv_layers = len(conv_channels)
         self.n_mlp_layers = len(mlp_channels)
 
