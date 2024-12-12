@@ -1,3 +1,5 @@
+import time
+
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -44,14 +46,24 @@ class Trainer:
                 accs.append(acc)
         return accs
 
-    def run(self, num_epochs, print_freq=50):
+    def run(self, num_epochs, print_freq=50, timeout=None):
+        """
+        Timeout in seconds!
+        """
+        t0 = time.time()
+
         # Training process
         for epoch in range(num_epochs):
             loss = self.train()
             train_acc, val_acc, test_acc = self.evaluate()
+
             if epoch % print_freq == 0 or epoch == (num_epochs - 1):
                 print(f'Epoch {epoch:03d}, Loss: {loss:.4f}, '
                     f'Train Acc: {train_acc:.4f}, Val Acc: {val_acc:.4f}, Test Acc: {test_acc:.4f}')
+                
+            if timeout is not None:
+                if (time.time() - t0) > timeout:
+                    break
 
     def predict(self):
         batch = next(iter(self.loader))

@@ -54,7 +54,7 @@ def main():
                     trainer = Trainer(model, dataset)
 
                     print(f"Number of parameters: {trainer.get_num_params():,}")
-                    trainer.run(1000, 20)
+                    trainer.run(1000, print_freq=20, timeout=900)  # 15 min timeout
 
                     metrics = trainer.get_metrics()
                     trainer.save_weights()
@@ -85,6 +85,8 @@ def main():
                 pd.DataFrame([result]).to_csv(csv_file, mode='a', header=False, index=False)
 
         del dataset
+        torch.cuda.empty_cache()
+
     # Load results from CSV
     results_df = pd.read_csv(csv_file)
 
