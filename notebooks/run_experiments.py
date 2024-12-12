@@ -23,14 +23,14 @@ def main():
     if not os.path.exists(csv_file):
         pd.DataFrame(columns=[
             "model_type", "configuration", "dataset", 
-            "accuracy", "precision", "recall", "f1", "roc", 
+            "accuracy", "precision", "recall", "f1", "roc_auc", 
             "runtime", "notes"
         ]).to_csv(csv_file, index=False)
         completed_tests = pd.DataFrame(columns=["model_type", "configuration", "dataset"])
 
     # Define test parameters
     model_types = ["GCN", "GAT"]
-    configurations = [(512,), (512, 256), (512, 256, 128)]
+    configurations = [(512,), (512, 256), (512, 256, 128), (512, 256, 128, 64)]
     datasets = ["Roman-empire", "Amazon-ratings", "Minesweeper", "Tolokers", "Questions"]
 
     # Iterate through all combinations
