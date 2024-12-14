@@ -30,7 +30,7 @@ def main():
 
     # Define test parameters
     model_types = ["GCN", "GAT"]
-    configurations = [(512,), (512, 256), (512, 256, 128), (512, 256, 128, 64)]
+    configurations = [(512,), (512, 256), (512, 256, 128), (512, 256, 128, 64), [64] * 15]
     datasets = ["Roman-empire", "Amazon-ratings", "Minesweeper", "Tolokers", "Questions"]
 
     # Iterate through all combinations
@@ -66,7 +66,7 @@ def main():
 
                     notes = "Success"
                 except Exception as e:
-                    metrics = {"accuracy": None, "precision": None, "recall": None, "f1": None, "roc": None}
+                    metrics = {"accuracy": None, "precision": None, "recall": None, "f1": None, "roc_auc": None}
                     notes = f"Error: {e}"
                 
                 t1 = time.time()
@@ -90,7 +90,7 @@ def main():
     # Load results from CSV
     results_df = pd.read_csv(csv_file)
 
-    summary = results_df.groupby("model_type")[["accuracy", "precision", "recall", "f1", "roc"]].mean()
+    summary = results_df.groupby("model_type")[["accuracy", "precision", "recall", "f1", "roc_auc"]].mean()
     print(summary)
 
 def _init_model(model_type, config, dataset):
